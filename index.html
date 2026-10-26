@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Vision & Weather AI System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        input[type="file"] { margin: 20px 0; }
+        button { background: #007BFF; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 20px; text-align: left; background: #e9ecef; padding: 15px; border-radius: 8px; display: none; }
+        .color-box { display: inline-block; width: 25px; height: 25px; vertical-align: middle; margin-right: 10px; border: 1px solid #000; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Hybrid Vision & Weather Analyzer</h2>
+    <p>Upload an image or capture frame to analyze Weather, Environment, and Colors.</p>
+    
+    <input type="file" id="imageInput" accept="image/*"><br>
+    <button onclick="uploadImage()">Analyze Image</button>
+
+    <div class="results" id="resultBox">
+        <h3>Analysis Results:</h3>
+        <p><strong>Weather:</strong> <span id="resWeather">-</span></p>
+        <p><strong>Environment:</strong> <span id="resEnv">-</span></p>
+        <p><strong>Lighting:</strong> <span id="resLight">-</span></p>
+        <p><strong>Dominant Color (BGR):</strong> <span id="resDominant">-</span> <span class="color-box" id="domColorBox"></span></p>
+        <p><strong>Top Color Percentages:</strong></p>
+        <ul id="resColors"></ul>
+    </div>
+</div>
+
+<script>
+    async function uploadImage() {
+        const fileInput = document.getElementById('imageInput');
+        if (fileInput.files.length === 0) {
+            alert("Please select an image first!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = "block";
+        document.getElementById('resWeather').innerText = "Analyzing...";
+
+        try {
+            // Yahan apna backend API URL dalein (e.g., Hugging Face ya Render URL)
+            const response = await fetch('https://YOUR-BACKEND-URL/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            
+            document.getElementById('resWeather').innerText = data.weather;
+            document.getElementById('resEnv').innerText = `${data.environment} (${data.brightness_value})`;
+            document.getElementById('resLight').innerText = data.lighting;
+            document.getElementById('resDominant').innerText = JSON.stringify(data.dominant_color_bgr);
+            
+            // Dominant color box background set karna
+            const bgr = data.dominant_color_bgr;
+            document.getElementById('domColorBox').style.backgroundColor = `rgb(${bgr[2]}, ${bgr[1]}, ${bgr[0]})`;
+
+            // Color percentages list
+            const colorList = document.getElementById('resColors');
+            colorList.innerHTML = "";
+            data.color_percentages.forEach(c => {
+                let li = document.createElement('li');
+                li.innerText = `BGR ${JSON.stringify(c.color_bgr)}: ${c.percentage}%`;
+                colorList.appendChild(li);
+            });
+
+        } catch (error) {
+            alert("Error connecting to backend API!");
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>
