@@ -1,8 +1,9 @@
-torch
-torchvision
-opencv-python
-scikit-learn
-Pillow
 fastapi
 uvicorn
+torch
+torchvision
+opencv-python-headless
+scikit-learn
+Pillow
+python-multipart
 requests
